@@ -45,6 +45,10 @@ print("\nLast 5 rows:")
 print(df.tail())
 print(df.shape)
 
+# ===========================================
+# PIECE 3 - Convert currency and compute the premium
+# ===========================================
+
 # p_a is in yua,, p_h is in HK dollars. Different units.
 # so comparing them is menaingless.
 df["hkd_per_cny"] = df["usdhkd"]/df["usdcny"]
@@ -58,7 +62,37 @@ df["premium"] = df["p_a_hkd"]/df["p_h"] -1
 print("\nA-H PREMIUM")
 print(f" mean {df['premium'].mean():+.2%}")
 print(f" median {df['premium'].median():+.2%}")
-print(f" std dev {df['premium'].std():+.2%}")
+print(f" std dev {df['premium'].std():.2%}")
 print(f" min {df['premium'].min():+.2%} on {df['premium'].idxmin().date()}")
 print(f" max {df['premium'].max():+.2%} on {df['premium'].idxmax().date()}")
-print(f" days Shanghai was CHEAPER: {(df['premium'] < 0).mean():+.1%}")
+cheaper = df["premium"] < 0
+print(f" days Shanghai was cheaper: {cheaper.sum()} of {len(df)} ({cheaper.mean():.1%})")
+print(f" days Shanghai was CHEAPER: {(df['premium'] < 0).mean():.1%}")
+
+# ===========================================
+# PIECE 3 - Plot the Premium
+# ===========================================
+
+import matplotlib.pyplot as plt
+
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), sharex = True)
+
+# Top: Both Prices, Same currency
+ax1.plot(df.index, df["p_a_hkd"], label="Shanghai (in HKD)", lw=1)
+ax1.plot(df.index, df["p_h"], label="Hong Kong", lw=1)
+ax1.set_ylabel("Price (HKD)")
+ax1.set_title("ICBC: one Company, two listings, two prices")
+ax1.legend()
+ax1.grid(alpha=0.3)
+
+# Bottom: The gap between them
+ax2.plot(df.index, df["premium"]*100, color="firebrick", lw=1)
+ax2.axhline(0, color="black", lw=0.8, ls="--")          # law of one price
+ax2.set_ylabel("A-H prmeium (%)")
+ax2.set_xlabel("Date")
+ax2.set_title("Shanghai Premium over Hong Kong (0% = one price)")
+ax2.grid(alpha=0.3)
+
+plt.tight_layout()
+plt.savefig("results/figures/icbc_premium.png", dpi=150)
+plt.show
