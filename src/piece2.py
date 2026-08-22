@@ -45,3 +45,20 @@ print("\nLast 5 rows:")
 print(df.tail())
 print(df.shape)
 
+# p_a is in yua,, p_h is in HK dollars. Different units.
+# so comparing them is menaingless.
+df["hkd_per_cny"] = df["usdhkd"]/df["usdcny"]
+
+# HKD per CNY = (HKD per USD)/(CNY per CNY). The US dollar cancels out; it's just a common reference point.
+# Restate the Shanghai price in Hong Kong dollars. So both listings are finally in the same currency.
+df["p_a_hkd"] = df["p_a"]*df["hkd_per_cny"]
+
+# The premium is how much more expensive is Shanghai?
+df["premium"] = df["p_a_hkd"]/df["p_h"] -1
+print("\nA-H PREMIUM")
+print(f" mean {df['premium'].mean():+.2%}")
+print(f" median {df['premium'].median():+.2%}")
+print(f" std dev {df['premium'].std():+.2%}")
+print(f" min {df['premium'].min():+.2%} on {df['premium'].idxmin().date()}")
+print(f" max {df['premium'].max():+.2%} on {df['premium'].idxmax().date()}")
+print(f" days Shanghai was CHEAPER: {(df['premium'] < 0).mean():+.1%}")
