@@ -114,3 +114,48 @@ pre2 = df.loc[:"2020-12-31", "premium"]
 post2 = df.loc["2021-01-01":, "premium"]
 print(f"\n2014-2020 mean: {pre2.mean():.2%} (n={len(pre2)})")
 print(f"2021-2026 mean: {post2.mean():.2%} (n={len(post2)})")
+
+# ==========================================================
+# PIECE 5 — Data quality guards
+# ==========================================================
+
+# ---- Guard 1: stale prices --------------------------------
+# Chinese A-shares get suspended often, sometimes for weeks.
+# Data providers forward-fill the last known price, so you get
+# a flat line that LOOKS like data but is frozen. Meanwhile the
+# HK twin keeps trading, so the premium goes on a journey that
+# never actually happened.
+def flag_stale(series, min_run=3):
+    """True on days where the price hasn't moved for >= min_run days."""
+    unchanged = series.diff() == 0          # did it change vs yesterday?
+    block = (~unchanged).cumsum()           # label each run of unchanged days
+    run_length = unchanged.groupby(block).transform("sum")
+    return unchanged & (run_length >= min_run)
+
+# ---- Guard 2: implausible jumps ---------------------------
+# Real economics doesn't move 10 percentage points overnight and
+# stay there. A jump this big is almost always a corporate action
+# you haven't handled, or an ex-dividend date that fell on
+# different days in the two markets.
+def flag_jumps(premium, threshold=0.10):
+    """True on dates where the premium moved more than the 'threshold'."""
+    return premium.diff().abs() > threshold
+
+df["stale_a"] = flag_stale(df["p_a"])
+df["stale_h"] = flag_stale(df["p_h"])
+df["jump"] = flag_jumps(df["premium"])
+
+print("\nDATA QUALITY")
+print(f" stale Shanghai days : {df['stale_a'].sum()}")
+print(f" stale Hong Kong days : {df['stale_h'].sum()}")
+print(f" premium jumps > 10pp : {df['jump'].sum()}")
+
+if df["jump"].any():
+    print("\n INSPECT THESE DAYS:")
+    for d in df.index[df["jump"]]:
+        print(f"{d.date()} premium {df.loc[d, 'premium']:+.1%}")
+
+
+# Check flagged episodes
+print(df.loc["2015-08-28":"2015-09-04", ["p_a", "p_h", "premium"]])
+print(df.loc["2015-07-01":"2015-07-08", ["p_a", "p_h", "premium"]])
