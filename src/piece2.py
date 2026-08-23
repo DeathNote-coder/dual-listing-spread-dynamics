@@ -67,7 +67,6 @@ print(f" min {df['premium'].min():+.2%} on {df['premium'].idxmin().date()}")
 print(f" max {df['premium'].max():+.2%} on {df['premium'].idxmax().date()}")
 cheaper = df["premium"] < 0
 print(f" days Shanghai was cheaper: {cheaper.sum()} of {len(df)} ({cheaper.mean():.1%})")
-print(f" days Shanghai was CHEAPER: {(df['premium'] < 0).mean():.1%}")
 
 # ===========================================
 # PIECE 3 - Plot the Premium
@@ -96,3 +95,22 @@ ax2.grid(alpha=0.3)
 plt.tight_layout()
 plt.savefig("results/figures/icbc_premium.png", dpi=150)
 plt.show
+
+# ==================
+# Side-Check
+# ==================
+print("\nMEAN PREMIUM BY YEAR")
+print((df["premium"].groupby(df.index.year).mean()*100).round(1))
+
+# Sanity check after 2018(Priori Hypothesis)
+pre = df.loc[:"2017-12-31", "premium"]
+post = df.loc["2018-01-01":, "premium"]
+print(f"\n2014-2017 mean: {pre.mean():.2%} (n={len(pre)})")
+print(f"2018-2026 mean: {post.mean():.2%} (n={len(post)})")
+
+# EXPLORATORY (break date chosen after inspecting yearly means —
+# not valid for inference; formal break dating comes later)
+pre2 = df.loc[:"2020-12-31", "premium"]
+post2 = df.loc["2021-01-01":, "premium"]
+print(f"\n2014-2020 mean: {pre2.mean():.2%} (n={len(pre2)})")
+print(f"2021-2026 mean: {post2.mean():.2%} (n={len(post2)})")
