@@ -137,7 +137,7 @@ PAIRS = CORE + EXTENDED
 def get_close(ticker):
     """Download one ticker. Return a one-column table of closes, or None."""
     data = yf.download(ticker, start=START, end=END,
-                       auto_adjust=True, progress=False)
+                       auto_adjust=False, progress=False)
     if data.empty:
         return None
  
