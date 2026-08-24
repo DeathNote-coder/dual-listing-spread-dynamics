@@ -211,6 +211,8 @@ def build_pair(pair):
 premiums = {}   # name -> premium Series
 rows = []       # one summary dict per successful pair
 failures = []   # (name, reason) for pairs that didn't make it
+prices_a = {}
+prices_h = {}
 
 print(f"Building {len(PAIRS)} pairs... \n")
 
@@ -234,6 +236,8 @@ for pair in PAIRS:
 
     p = df["premium"]
     premiums[name] = p
+    prices_a[name] = df["p_a_hkd"]
+    prices_h[name] = df["p_h"]
     rows.append({
         "name": name,
         "tier": pair["tier"],
@@ -303,6 +307,8 @@ print(f"  largest mean premium   : {summary['mean'].max():+.2%}"
 panel = pd.DataFrame(premiums)
 panel.to_csv("data/processed/ah_premiums.csv")
 summary.to_csv("data/processed/ah_summary.csv", index=False)
+pd.DataFrame(prices_a).to_csv("data/processed/prices_a_hkd.csv")
+pd.DataFrame(prices_h).to_csv("data/processed/prices_h.csv")
  
 print(f"\nSaved panel  : {panel.shape[0]} dates x {panel.shape[1]} pairs")
 print( "               -> data/processed/ah_premiums.csv")
