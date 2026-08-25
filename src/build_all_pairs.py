@@ -304,12 +304,22 @@ print(f"  largest mean premium   : {summary['mean'].max():+.2%}"
 # ----------------------------------------------------------
 # SAVE
 # ----------------------------------------------------------
+# ----------------------------------------------------------
+# SAVE
+# ----------------------------------------------------------
 panel = pd.DataFrame(premiums)
 panel.to_csv("data/processed/ah_premiums.csv")
 summary.to_csv("data/processed/ah_summary.csv", index=False)
 pd.DataFrame(prices_a).to_csv("data/processed/prices_a_hkd.csv")
 pd.DataFrame(prices_h).to_csv("data/processed/prices_h.csv")
- 
+
+quality = summary[["name", "stale_a", "stale_h", "jumps", "n"]].copy()
+quality["stale_pct"] = ((quality["stale_a"] + quality["stale_h"])
+                         / (2 * quality["n"]) * 100).round(2)
+quality = quality.sort_values("stale_pct", ascending=False)
+quality.to_csv("data/processed/ah_quality_flags.csv", index=False)
+
 print(f"\nSaved panel  : {panel.shape[0]} dates x {panel.shape[1]} pairs")
 print( "               -> data/processed/ah_premiums.csv")
 print( "               -> data/processed/ah_summary.csv")
+print( "               -> data/processed/ah_quality_flags.csv")
